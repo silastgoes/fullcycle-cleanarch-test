@@ -1,6 +1,8 @@
 package entity
 
-import "errors"
+import (
+	"errors"
+)
 
 type Order struct {
 	ID         string

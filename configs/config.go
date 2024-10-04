@@ -1,6 +1,8 @@
 package configs
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+)
 
 type conf struct {
 	DBDriver          string `mapstructure:"DB_DRIVER"`

@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+
+	"log"
 	"net"
 	"net/http"
 
@@ -11,6 +13,8 @@ import (
 	"github.com/silastgoes/fullcycle-cleanarch-test/cmd/ordersystem/wire"
 	"github.com/silastgoes/fullcycle-cleanarch-test/configs"
 	"github.com/silastgoes/fullcycle-cleanarch-test/internal/event/handler"
+
+	migrate "github.com/silastgoes/fullcycle-cleanarch-test/internal/infra/database/migrate"
 	graph "github.com/silastgoes/fullcycle-cleanarch-test/internal/infra/graph/generated"
 	graphResolver "github.com/silastgoes/fullcycle-cleanarch-test/internal/infra/graph/generated/resolvers"
 	"github.com/silastgoes/fullcycle-cleanarch-test/internal/infra/grpc/pb"
@@ -37,6 +41,10 @@ func main() {
 	}
 	defer db.Close()
 
+	if err := migrate.NewMigrateService(db).Up(); err != nil {
+		log.Fatal(fmt.Errorf("error ou migrar: %s", err.Error()))
+	}
+
 	rabbitMQChannel := getRabbitMQChannel()
 
 	eventDispatcher := events.NewEventDispatcher()
@@ -50,7 +58,7 @@ func main() {
 	webserver := webserver.NewWebServer(configs.WebServerPort)
 	webOrderHandler := wire.NewWebOrderHandler(db, eventDispatcher)
 	webserver.AddHandler(http.MethodPost, "/order", webOrderHandler.Create)
-	webserver.AddHandler(http.MethodGet, "/orders", webOrderHandler.Create)
+	webserver.AddHandler(http.MethodGet, "/orders", webOrderHandler.List)
 	fmt.Println("Starting web server on port", configs.WebServerPort)
 	go webserver.Start()
 

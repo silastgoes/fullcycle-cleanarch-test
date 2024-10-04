@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/silastgoes/fullcycle-cleanarch-test/internal/entity"
@@ -49,19 +50,13 @@ func (h *WebOrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebOrderHandler) List(w http.ResponseWriter, r *http.Request) {
-	var dto usecase.OrderInputDTO
-	err := json.NewDecoder(r.Body).Decode(&dto)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	listOrder := usecase.NewListOrderUseCase(h.OrderRepository)
 	output, err := listOrder.Execute()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	fmt.Println(output)
 	err = json.NewEncoder(w).Encode(output)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
